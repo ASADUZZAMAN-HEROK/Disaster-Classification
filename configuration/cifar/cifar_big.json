@@ -1,0 +1,9 @@
+{
+  "project_dir": "big",
+  "model": {
+    "base_dim": 128
+  },
+  "training": {},
+  "evaluation": {},
+  "data": {}
+}
