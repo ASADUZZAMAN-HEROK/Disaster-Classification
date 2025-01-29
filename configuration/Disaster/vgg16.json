@@ -18,7 +18,7 @@
         "resume_path": null
     },
     "data": {
-        "root": "data"
+        "root": "../Dataset/ComprehensiveDisasterDataset"
     },
     "evaluation": {
         "num_workers": 4,
@@ -29,5 +29,5 @@
     "project_tracker": ["tensorboard"],
     "mixed_precision": "no",
     "seed": 0,
-    "config": null
+    "config": "configuration/Disaster/vgg16.json"
 }

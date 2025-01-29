@@ -6,3 +6,5 @@ __pycache__
 .pypirc
 dist
 torchlib.egg-info
+data
+logs

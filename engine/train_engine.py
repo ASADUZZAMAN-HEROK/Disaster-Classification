@@ -9,13 +9,18 @@ from configs import Config
 from dataset import get_loader
 from engine.base_engine import BaseEngine
 from modeling import build_loss, build_model
+from tqdm import tqdm
 
 
 class Engine(BaseEngine):
     def __init__(self, accelerator: accelerate.Accelerator, cfg: Config):
         super().__init__(accelerator, cfg)
 
-        # Setup model, loss, optimizer, and dataloaders
+        # Dataloaders
+        with self.accelerator.main_process_first():
+            train_loader, val_loader, test_loader = get_loader(cfg)
+        
+        # Setup model, loss, optimizer, 
         model = build_model(cfg)
         self.loss_fn = build_loss(cfg)
 
@@ -25,8 +30,7 @@ class Engine(BaseEngine):
             weight_decay=self.cfg.training.weight_decay,
         )
 
-        with self.accelerator.main_process_first():
-            train_loader, val_loader = get_loader(cfg)
+        
 
         # Prepare model, optimizer, loss_fn, and dataloaders for distributed training (or single GPU)
         (

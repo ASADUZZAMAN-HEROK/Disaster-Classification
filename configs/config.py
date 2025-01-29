@@ -4,10 +4,12 @@ import dataclasses
 from typing import List, Literal, Optional
 
 from dataclass_wizard import JSONPyWizard
+from configs.config_utils import str_config
+
 
 
 @dataclasses.dataclass
-class TrainingConfig:
+class TrainingConfig(JSONPyWizard):
     engine: str = "engine"
     label_smoothing: float = 0.0
     batch_size: int = 32
@@ -18,25 +20,33 @@ class TrainingConfig:
     mixed_precision: Literal["no", "fp16", "bf16"] = "no"
     lr: float = 0.0003
     weight_decay: float = 0.0001
+    def __str__(self):
+        return str_config(self)
 
 
 @dataclasses.dataclass
-class EvalConfig:
+class EvalConfig(JSONPyWizard):
     num_workers: int = 4
     batch_size: int = 32
+    def __str__(self):
+        return str_config(self)
 
 
 @dataclasses.dataclass
-class ModelConfig:
+class ModelConfig(JSONPyWizard):
     in_channels: int = 3
     base_dim: int = 16
     num_classes: int = 10
     resume_path: Optional[str] = None
+    def __str__(self):
+        return str_config(self)
 
 
 @dataclasses.dataclass
-class DataConfig:
+class DataConfig(JSONPyWizard):
     root: str = "data"
+    def __str__(self):
+        return str_config(self)
 
 
 @dataclasses.dataclass
@@ -58,4 +68,6 @@ class Config(JSONPyWizard):
     project_tracker: List[str] = dataclasses.field(default_factory=lambda: ["tensorboard"])
     mixed_precision: str = "no"
     seed: int = 0
-    config: Optional[str] = None
+    config: Optional[str] = "configuration/Disaster/vgg16.json"
+    def __str__(self):
+        return str_config(self)

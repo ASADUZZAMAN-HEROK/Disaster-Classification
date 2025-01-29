@@ -7,14 +7,13 @@ from engine import build_engine
 
 def main():
     cfg = tyro.cli(Config)
-
     if cfg.config is not None:
         with open(cfg.config, "r") as f:
             json_cfg = Config.from_json(f.read())
         if cfg.model.resume_path is not None:
             json_cfg.model.resume_path = cfg.model.resume_path
-        cfg = json_cfg
-
+        cfg = json_cfg 
+    
     project_config = accelerate.utils.ProjectConfiguration(
         project_dir=cfg.project_dir,
         logging_dir=cfg.log_dir,

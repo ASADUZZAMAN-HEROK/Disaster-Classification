@@ -1,6 +1,5 @@
 import tabulate
 
-from configs.config import Config
 
 
 def tree_print(tree, level=0, prev_level=[], is_last_item=False):
@@ -38,9 +37,9 @@ def tree_print(tree, level=0, prev_level=[], is_last_item=False):
         return ": " + (str(tree) if not isinstance(tree, str) else tree) + "\n"
 
 
-def show_config(cfg: Config):
+def str_config(cfg):
     table = tabulate.tabulate(
         {"": ["Configuration\n" + tree_print(cfg.to_dict())]},
         tablefmt="grid",
     )
-    print(table)
+    return table

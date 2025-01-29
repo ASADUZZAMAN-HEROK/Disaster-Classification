@@ -19,7 +19,7 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from configs import Config, show_config
+from configs import Config
 from utils.meter import AverageMeter
 
 
@@ -41,7 +41,7 @@ class BaseEngine:
 
         if self.accelerator.is_main_process and is_training_engine:
             os.makedirs(self.base_dir, exist_ok=True)
-            show_config(cfg)
+            print(cfg)
         self.accelerator.wait_for_everyone()
 
         self.cfg = cfg

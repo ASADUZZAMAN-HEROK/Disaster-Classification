@@ -1,39 +1,51 @@
 from typing import Tuple
 
-import torchvision
 from torch.utils.data import DataLoader, Dataset
 from torchvision.transforms import transforms
 
 from configs import Config
+from dataset.CDD_util import get_all_files, stratified_split
+from PIL import Image
 
 
-class CustomDataset(Dataset):
+class CDDDAtaset(Dataset):
     """Please define your own `Dataset` here. We provide an example for CIFAR-10 dataset."""
+    def __init__(self, cfg: Config):
+        super().__init__()
+        self.all_files = get_all_files(cfg.data.root)
+    
+    def __len__(self):
+        return len(self.all_files)
+    
+    def __getitem__(self, idx):
+        train_transform = transforms.Compose(
+        [
+            transforms.Resize((512, 512)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+        )
+        img_path = self.all_files[idx]
+        label = img_path.split("/")[-2]
+        try:
+            image = Image.open(img_path).convert("RGB")
+            image = train_transform(image)
+        except:
+            print(f"Error reading image: {img_path}")
+            print(img_path)
+        return image, label
+    def get_labels(self):
+        return list(map(lambda x: x.split("/")[-2], self.all_files))
 
-    pass
 
 
 def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
-    train_transform = transforms.Compose(
-        [
-            transforms.Resize((32, 32)),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ]
-    )
-    train_dataset = torchvision.datasets.CIFAR10(
-        root=cfg.data.root, train=True, download=True, transform=train_transform
-    )
-    val_transform = transforms.Compose(
-        [
-            transforms.Resize((32, 32)),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ]
-    )
-    val_dataset = torchvision.datasets.CIFAR10(
-        root=cfg.data.root, train=False, download=True, transform=val_transform
-    )
+    fullDataset = CDDDAtaset(cfg)
+    all_labels = fullDataset.get_labels()
+    train_dataset, test_dataset, train_labels, _ = stratified_split(fullDataset, all_labels, 0.9, cfg.seed)
+    train_dataset, val_dataset, _, _ = stratified_split(train_dataset, train_labels, 0.9, cfg.seed)
+    del fullDataset
+    
     train_loader = DataLoader(
         train_dataset,
         num_workers=cfg.training.num_workers,
@@ -46,4 +58,11 @@ def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
         batch_size=cfg.evaluation.batch_size,
         shuffle=False,
     )
-    return train_loader, val_loader
+    
+    test_dataset = DataLoader(
+        test_dataset,
+        num_workers=cfg.evaluation.num_workers,
+        batch_size=cfg.evaluation.batch_size,
+        shuffle=False,
+    )
+    return train_loader, val_loader, test_dataset
