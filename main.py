@@ -23,12 +23,13 @@ def main():
         project_config=project_config,
         gradient_accumulation_steps=cfg.training.accum_iter,
         mixed_precision=cfg.mixed_precision,
+        cpu=True
     )
 
     accelerate.utils.set_seed(cfg.seed, device_specific=True)
     engine = build_engine(cfg.training.engine)(accelerator, cfg)
     engine.train()
-    engine.close()
+    # engine.close()
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torchvision import models
 
 from configs import Config
 
@@ -24,5 +25,13 @@ class ClassicModel(nn.Module):
         return x
 
 
+
+
 def build_model(cfg: Config) -> ClassicModel:
-    return ClassicModel(cfg.model.in_channels, cfg.model.base_dim, cfg.model.num_classes)
+    vgg16 = models.vgg16(weights=None)
+    vgg16.load_state_dict(torch.load("../Dataset/vgg16-397923af.pth",weights_only=True))
+    vgg16.classifier[6] = nn.Linear(4096, cfg.model.num_classes)
+    for param in vgg16.features.parameters():
+        param.requires_grad = False
+    vgg16.classifier[6].requires_grad = True
+    return vgg16

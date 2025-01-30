@@ -38,7 +38,8 @@ class Engine(BaseEngine):
             self.optimizer,
             self.train_loader,
             self.val_loader,
-        ) = self.accelerator.prepare(model, optimizer, train_loader, val_loader)
+            self.test_loader,
+        ) = self.accelerator.prepare(model, optimizer, train_loader, val_loader, test_loader)
         self.min_loss = float("inf")
         self.current_epoch = 1
 
@@ -160,7 +161,7 @@ class Engine(BaseEngine):
     def setup_training(self):
         os.makedirs(os.path.join(self.base_dir, "checkpoint"), exist_ok=True)
         self.accelerator.init_trackers(
-            self.accelerator.project_configuration.project_dir, config=self.cfg.to_dict()
+            self.accelerator.project_configuration.project_dir, config=self.cfg.to_dict()["training"]
         )
 
     def train(self):

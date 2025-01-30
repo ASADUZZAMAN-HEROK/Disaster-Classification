@@ -46,6 +46,7 @@ class BaseEngine:
 
         self.cfg = cfg
         self.device = self.accelerator.device
+        print(f'Using device: {self.device}')
         self.dtype = self.get_dtype()
 
         self.sub_task_progress = Progress(
@@ -83,10 +84,12 @@ class BaseEngine:
         self.accelerator.print(
             "📁 \033[1mLength of dataset\033[0m:\n"
             f" - 💪 Train: {len(self.train_loader.dataset)}\n"
-            f" - 📝 Validation: {len(self.val_loader.dataset)}"
+            f" - 📝 Validation: {len(self.val_loader.dataset)}\n"
+            f" - 🧪 Test: {len(self.test_loader.dataset)}"
         )
 
     def print_model_details(self):
+        print(self.model)
         trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         non_trainable_params = sum(
             p.numel() for p in self.model.parameters() if not p.requires_grad
@@ -102,12 +105,12 @@ class BaseEngine:
     def print_training_details(self):
         try:
             self.print_dataset_details()
-        except Exception:
-            pass
+        except Exception as e:
+            print("Error in printing dataset details:"+e)
         try:
             self.print_model_details()
-        except Exception:
-            pass
+        except Exception as e:
+            print("Error in printing model details"+e)
 
     def reset(self):
         self.data_time.reset()

@@ -34,11 +34,9 @@ if cfg.config is not None:
 
 fullDataset = CDDDAtaset(cfg)
 
-dataloader = torch.utils.data.DataLoader(fullDataset, batch_size=128, shuffle=False, num_workers=8)
+dataloader = torch.utils.data.DataLoader(fullDataset, batch_size=1, shuffle=False, num_workers=1)
 
-all_labels = []
-for _, labels in tqdm(dataloader):
-    all_labels.extend(labels)
+all_labels = fullDataset.get_labels()
 
 
 def stratified_split(dataset : torch.utils.data.Dataset, labels, fraction, random_state=None):
@@ -58,7 +56,8 @@ def stratified_split(dataset : torch.utils.data.Dataset, labels, fraction, rando
     # second_set_labels = list(map(labels.__getitem__, second_set_indices))
     return first_set_inputs, second_set_inputs
 
-train_dataset, val_dataset,_, _ = stratified_split(fullDataset, all_labels, 0.8, cfg.seed)
+train_dataset, val_dataset= stratified_split(fullDataset, all_labels, 0.8, cfg.seed)
 
 print(f"Train dataset size: {len(train_dataset)}")
 print(f"Validation dataset size: {len(val_dataset)}")
+print(f"Total dataset size: {len(fullDataset)}")

@@ -2,7 +2,7 @@
     "training": {
         "engine": "engine",
         "label_smoothing": 0.0,
-        "batch_size": 32,
+        "batch_size": 16,
         "val_freq": 1,
         "epochs": 50,
         "num_workers": 4,
@@ -14,11 +14,12 @@
     "model": {
         "in_channels": 3,
         "base_dim": 16,
-        "num_classes": 10,
+        "num_classes": 12,
         "resume_path": null
     },
     "data": {
-        "root": "../Dataset/ComprehensiveDisasterDataset"
+        "root": "../Dataset/ComprehensiveDisasterDataset",
+        "train_val_split": 0.8
     },
     "evaluation": {
         "num_workers": 4,
