@@ -22,7 +22,7 @@ class CDDDAtaset(Dataset):
                 std=[0.229, 0.224, 0.225]
             )
         ])
-        unique_labels = set(map(lambda x: x.split("/")[-2], self.all_files))
+        unique_labels = sorted(set(map(lambda x: x.split("/")[-2], self.all_files)))
         self.label_to_idx = {label: idx for idx, label in enumerate(unique_labels)}
         self.idx_to_label = {idx: label for label, idx in self.label_to_idx.items()}
         self.target_transform = lambda x: self.label_to_idx[x]
@@ -43,14 +43,16 @@ class CDDDAtaset(Dataset):
         return image, label
     def get_labels(self):
         return list(map(lambda x: x.split("/")[-2], self.all_files))
+    
+    def get_all_files(self):
+        return self.all_files
 
 
 
 def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
     fullDataset = CDDDAtaset(cfg)
     all_labels = fullDataset.get_labels()
-    train_dataset, test_dataset, train_labels, _ = stratified_split(fullDataset, all_labels, 0.91, cfg.seed)
-    train_dataset, val_dataset, _, _ = stratified_split(train_dataset, train_labels, 0.9, cfg.seed)
+    train_dataset, val_dataset, _, _ = stratified_split(fullDataset, all_labels, cfg.data.train_val_split, cfg.seed)
     del fullDataset
     
     train_loader = DataLoader(
@@ -66,10 +68,4 @@ def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
         shuffle=False,
     )
     
-    test_dataset = DataLoader(
-        test_dataset,
-        num_workers=cfg.evaluation.num_workers,
-        batch_size=cfg.evaluation.batch_size,
-        shuffle=False,
-    )
-    return train_loader, val_loader, test_dataset
+    return train_loader, val_loader,

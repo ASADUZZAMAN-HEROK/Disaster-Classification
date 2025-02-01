@@ -26,12 +26,49 @@ class ClassicModel(nn.Module):
 
 
 
-
-def build_model(cfg: Config) -> ClassicModel:
-    vgg16 = models.vgg16(weights=None)
-    vgg16.load_state_dict(torch.load("../Dataset/vgg16-397923af.pth",weights_only=True))
+def build_vgg16(cfg: Config):
+    vgg16 = models.vgg16()
+    
+    if cfg.model.weight_path:
+        vgg16.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
+    elif cfg.model.pretrained:
+        vgg16 = models.vgg16(weights=models.vgg.VGG16_Weights.IMAGENET1K_V1)
+    else:
+        vgg16 = models.vgg16(weights=None)
+    
     vgg16.classifier[6] = nn.Linear(4096, cfg.model.num_classes)
     for param in vgg16.features.parameters():
         param.requires_grad = False
-    vgg16.classifier[6].requires_grad = True
+    for i in range(6):
+        vgg16.classifier[i].requires_grad = True
     return vgg16
+
+def build_resnet50(cfg: Config):
+    resnet50 = models.resnet50()
+    
+    if cfg.model.weight_path:
+        resnet50.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
+    elif cfg.model.pretrained:
+        resnet50 = models.resnet50(weights=models.resnet.ResNet50_Weights.IMAGENET1K_V1)
+    else:
+        resnet50 = models.resnet50(weights=None)
+    
+    resnet50.fc = nn.Linear(2048, cfg.model.num_classes)
+    for param in resnet50.parameters():
+        param.requires_grad = False
+    resnet50.fc.requires_grad = True
+    return resnet50
+
+
+
+def build_model(cfg: Config) -> ClassicModel:
+    
+    if cfg.model.name == "vgg16":
+        return build_vgg16(cfg)
+    elif cfg.model.name == "classic":
+        return ClassicModel(cfg.model.in_channels, cfg.model.base_dim, cfg.model.num_classes)
+    elif cfg.model.name == "resnet50":
+        return build_resnet50(cfg)
+    else:
+        raise ValueError(f"Invalid model name: {cfg.model.name}")
+    

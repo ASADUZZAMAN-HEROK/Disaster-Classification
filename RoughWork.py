@@ -6,34 +6,22 @@ from collections import defaultdict
 import tyro
 from torchvision.transforms import transforms
 from configs.config import Config
+from dataset.CDD_util import get_all_files
 from dataset.dataset import CDDDAtaset
 from PIL import Image
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import os
+from shutil import copyfile
 
-img = Image.open("../Dataset/ComprehensiveDisasterDataset/Human_Damage/02_0061.png").convert("RGB") 
-
-
-train_transform = transforms.Compose(
-    [
-        transforms.Resize((256, 256)),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-    ]
-)
-img = train_transform(img)
-# exit()
 
 cfg = tyro.cli(Config)
 if cfg.config is not None:
     with open(cfg.config, "r") as f:
         json_cfg = Config.from_json(f.read())
-    if cfg.model.resume_path is not None:
-        json_cfg.model.resume_path = cfg.model.resume_path
     cfg = json_cfg 
 
 fullDataset = CDDDAtaset(cfg)
-
 dataloader = torch.utils.data.DataLoader(fullDataset, batch_size=1, shuffle=False, num_workers=1)
 
 all_labels = fullDataset.get_labels()
@@ -54,10 +42,31 @@ def stratified_split(dataset : torch.utils.data.Dataset, labels, fraction, rando
     # first_set_labels = list(map(labels.__getitem__, first_set_indices))
     second_set_inputs = torch.utils.data.Subset(dataset, second_set_indices)
     # second_set_labels = list(map(labels.__getitem__, second_set_indices))
-    return first_set_inputs, second_set_inputs
+    return first_set_inputs, second_set_inputs, first_set_indices, second_set_indices
 
-train_dataset, val_dataset= stratified_split(fullDataset, all_labels, 0.8, cfg.seed)
+train_dataset, val_dataset, first_set_indices, second_set_indices =stratified_split(fullDataset, all_labels, 0.85, cfg.seed)
+    
+    
+# base_path = "../Dataset/ComprehensiveDisasterDataset"    
+# for idx in tqdm(second_set_indices):
+#     img_path = fullDataset.all_files[idx]
+#     rel_path = os.path.relpath(img_path, base_path)
+#     dir = os.path.dirname(rel_path)
+#     if not os.path.exists(f"../Dataset/CDD/Test/{dir}"):
+#         os.makedirs(f"../Dataset/CDD/Test/{dir}")
+#     copyfile(img_path, f"../Dataset/CDD/Test/{rel_path}")
+    
 
-print(f"Train dataset size: {len(train_dataset)}")
-print(f"Validation dataset size: {len(val_dataset)}")
-print(f"Total dataset size: {len(fullDataset)}")
+# for idx in tqdm(first_set_indices):
+#     img_path = fullDataset.all_files[idx]
+#     rel_path = os.path.relpath(img_path, base_path)
+#     dir = os.path.dirname(rel_path)
+#     if not os.path.exists(f"../Dataset/CDD/Train/{dir}"):
+#         os.makedirs(f"../Dataset/CDD/Train/{dir}")
+#     copyfile(img_path, f"../Dataset/CDD/Train/{rel_path}")
+    
+# train_size = len(get_all_files("../Dataset/CDD/Train"))
+# test_size = len(get_all_files("../Dataset/CDD/Test"))
+
+# print(f"Train size: {train_size}")
+# print(f"Test size: {test_size}")

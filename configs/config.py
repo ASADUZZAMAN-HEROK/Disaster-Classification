@@ -34,10 +34,13 @@ class EvalConfig(JSONPyWizard):
 
 @dataclasses.dataclass
 class ModelConfig(JSONPyWizard):
+    name: str = "vgg16"
     in_channels: int = 3
     base_dim: int = 16
     num_classes: int = 10
     resume_path: Optional[str] = None
+    pretrained: bool = False
+    weight_path: Optional[str] = None
     def __str__(self):
         return str_config(self)
 

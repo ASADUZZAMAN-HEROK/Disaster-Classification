@@ -18,7 +18,7 @@ class Engine(BaseEngine):
 
         # Dataloaders
         with self.accelerator.main_process_first():
-            train_loader, val_loader, test_loader = get_loader(cfg)
+            train_loader, val_loader = get_loader(cfg)
         
         # Setup model, loss, optimizer, 
         model = build_model(cfg)
@@ -86,6 +86,10 @@ class Engine(BaseEngine):
                 },
                 f,
             )
+    
+    def save_model(self, save_path: str):
+        unwrapped_model = self.accelerator.unwrap_model(self.model)
+        torch.save(unwrapped_model.state_dict(), save_path)
 
     def _train_one_epoch(self):
         epoch_progress = self.sub_task_progress.add_task("loader", total=len(self.train_loader))
@@ -183,6 +187,10 @@ class Engine(BaseEngine):
                 self.validate()
             self.epoch_progress.update(train_progress, advance=1, acc=self.max_acc)
         self.epoch_progress.stop_task(train_progress)
+
+        self.accelerator.wait_for_everyone()
+        self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_final.pth"))
+    
 
     def reset(self):
         super().reset()
