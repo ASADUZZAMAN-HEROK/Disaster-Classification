@@ -48,6 +48,8 @@ class ModelConfig(JSONPyWizard):
 @dataclasses.dataclass
 class DataConfig(JSONPyWizard):
     root: str = "data"
+    train_dir: str = "train"
+    test_dir: str = "test"
     train_val_split: float = 0.8
     def __str__(self):
         return str_config(self)

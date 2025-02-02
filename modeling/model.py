@@ -29,9 +29,7 @@ class ClassicModel(nn.Module):
 def build_vgg16(cfg: Config):
     vgg16 = models.vgg16()
     
-    if cfg.model.weight_path:
-        vgg16.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
-    elif cfg.model.pretrained:
+    if cfg.model.pretrained:
         vgg16 = models.vgg16(weights=models.vgg.VGG16_Weights.IMAGENET1K_V1)
     else:
         vgg16 = models.vgg16(weights=None)
@@ -41,14 +39,16 @@ def build_vgg16(cfg: Config):
         param.requires_grad = False
     for i in range(6):
         vgg16.classifier[i].requires_grad = True
+
+    if cfg.model.weight_path:
+        vgg16.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
+    
     return vgg16
 
 def build_resnet50(cfg: Config):
     resnet50 = models.resnet50()
     
-    if cfg.model.weight_path:
-        resnet50.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
-    elif cfg.model.pretrained:
+    if cfg.model.pretrained:
         resnet50 = models.resnet50(weights=models.resnet.ResNet50_Weights.IMAGENET1K_V1)
     else:
         resnet50 = models.resnet50(weights=None)
@@ -56,7 +56,11 @@ def build_resnet50(cfg: Config):
     resnet50.fc = nn.Linear(2048, cfg.model.num_classes)
     for param in resnet50.parameters():
         param.requires_grad = False
-    resnet50.fc.requires_grad = True
+    for param in resnet50.fc.parameters():
+        param.requires_grad = True
+    
+    if cfg.model.weight_path:
+        resnet50.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
     return resnet50
 
 

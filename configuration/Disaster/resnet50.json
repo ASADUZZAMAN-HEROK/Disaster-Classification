@@ -4,7 +4,7 @@
         "label_smoothing": 0.0,
         "batch_size": 16,
         "val_freq": 1,
-        "epochs": 10,
+        "epochs": 50,
         "num_workers": 0,
         "accum_iter": 1,
         "mixed_precision": "no",
@@ -12,7 +12,7 @@
         "weight_decay": 0.0001
     },
     "model": {
-        "name": "vgg16",
+        "name": "resnet50",
         "in_channels": 3,
         "base_dim": 16,
         "num_classes": 12,
@@ -30,10 +30,10 @@
         "num_workers": 4,
         "batch_size": 32
     },
-    "project_dir": "VGG16",
+    "project_dir": "RESNET50",
     "log_dir": "Logs",
     "project_tracker": ["tensorboard"],
     "mixed_precision": "no",
     "seed": 0,
-    "config": "configuration/Disaster/vgg16.json"
+    "config": "configuration/Disaster/resnet50.json"
 }

@@ -6,7 +6,7 @@ import accelerate
 import torch
 
 from configs import Config
-from dataset import get_loader
+from dataset import get_train_loader
 from engine.base_engine import BaseEngine
 from modeling import build_loss, build_model
 from tqdm import tqdm
@@ -18,7 +18,7 @@ class Engine(BaseEngine):
 
         # Dataloaders
         with self.accelerator.main_process_first():
-            train_loader, val_loader = get_loader(cfg)
+            train_loader, val_loader = get_train_loader(cfg)
         
         # Setup model, loss, optimizer, 
         model = build_model(cfg)
@@ -38,8 +38,7 @@ class Engine(BaseEngine):
             self.optimizer,
             self.train_loader,
             self.val_loader,
-            self.test_loader,
-        ) = self.accelerator.prepare(model, optimizer, train_loader, val_loader, test_loader)
+        ) = self.accelerator.prepare(model, optimizer, train_loader, val_loader)
         self.min_loss = float("inf")
         self.current_epoch = 1
 

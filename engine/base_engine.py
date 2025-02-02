@@ -85,7 +85,7 @@ class BaseEngine:
             "📁 \033[1mLength of dataset\033[0m:\n"
             f" - 💪 Train: {len(self.train_loader.dataset)}\n"
             f" - 📝 Validation: {len(self.val_loader.dataset)}\n"
-            f" - 🧪 Test: {len(self.test_loader.dataset)}"
+        
         )
 
     def print_model_details(self):

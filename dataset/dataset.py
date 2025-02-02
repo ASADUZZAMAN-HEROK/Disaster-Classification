@@ -6,13 +6,16 @@ from torchvision.transforms import transforms
 from configs import Config
 from dataset.CDD_util import get_all_files, stratified_split
 from PIL import Image
+import os
 
 
 class CDDDAtaset(Dataset):
     """Please define your own `Dataset` here. We provide an example for CIFAR-10 dataset."""
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, is_train: bool = True):
         super().__init__()
-        self.all_files = get_all_files(cfg.data.root)
+        self.data_dir = os.path.join(cfg.data.root, cfg.data.train_dir if is_train else cfg.data.test_dir)
+        print(self.data_dir)
+        self.all_files = get_all_files(os.path.join(self.data_dir))  
         self.input_transform = transforms.Compose([
             transforms.Resize(256),                      # Resize image to 256px
             transforms.CenterCrop(224),                   # Crop the image to 224x224
@@ -49,8 +52,8 @@ class CDDDAtaset(Dataset):
 
 
 
-def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
-    fullDataset = CDDDAtaset(cfg)
+def get_train_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
+    fullDataset = CDDDAtaset(cfg, is_train=True)
     all_labels = fullDataset.get_labels()
     train_dataset, val_dataset, _, _ = stratified_split(fullDataset, all_labels, cfg.data.train_val_split, cfg.seed)
     del fullDataset
@@ -69,3 +72,14 @@ def get_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
     )
     
     return train_loader, val_loader,
+
+def get_test_loader(cfg: Config)->DataLoader:
+    test_dataset = CDDDAtaset(cfg, is_train=False)
+    test_loader = DataLoader(
+        test_dataset,
+        num_workers=cfg.evaluation.num_workers,
+        batch_size=cfg.evaluation.batch_size,
+        shuffle=False,
+    )
+    return test_loader
+
