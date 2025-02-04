@@ -64,6 +64,25 @@ def build_resnet50(cfg: Config):
     return resnet50
 
 
+def build_inceptionV3(cfg: Config):
+    
+    if cfg.model.pretrained:
+        inceptionV3 = models.inception_v3(weights=models.inception.Inception_V3_Weights.IMAGENET1K_V1)
+    else:
+        inceptionV3 = models.inception_v3(weights=None)
+    
+    inceptionV3.fc = nn.Linear(inceptionV3.fc.in_features, cfg.model.num_classes)
+    for param in inceptionV3.parameters():
+        param.requires_grad = False
+    for param in inceptionV3.fc.parameters():
+        param.requires_grad = True
+    
+    if cfg.model.weight_path:
+        inceptionV3.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
+    return inceptionV3
+
+
+
 
 def build_model(cfg: Config) -> ClassicModel:
     
@@ -73,6 +92,8 @@ def build_model(cfg: Config) -> ClassicModel:
         return ClassicModel(cfg.model.in_channels, cfg.model.base_dim, cfg.model.num_classes)
     elif cfg.model.name == "resnet50":
         return build_resnet50(cfg)
+    elif cfg.model.name == "inceptionV3":
+        return build_inceptionV3(cfg)
     else:
         raise ValueError(f"Invalid model name: {cfg.model.name}")
     
