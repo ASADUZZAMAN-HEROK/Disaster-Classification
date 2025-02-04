@@ -14,6 +14,8 @@ def main():
             json_cfg = Config.from_json(f.read())
         if cfg.model.resume_path is not None:
             json_cfg.model.resume_path = cfg.model.resume_path
+        if cfg.model.weight_path is not None:
+            json_cfg.model.weight_path = cfg.model.weight_path
         cfg = json_cfg 
 
     project_config = accelerate.utils.ProjectConfiguration(
