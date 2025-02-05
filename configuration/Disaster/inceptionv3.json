@@ -2,7 +2,7 @@
     "training": {
         "engine": "engine",
         "label_smoothing": 0.0,
-        "batch_size": 32,
+        "batch_size": 60,
         "val_freq": 1,
         "epochs": 50,
         "num_workers": 0,
@@ -30,7 +30,7 @@
         "num_workers": 4,
         "batch_size": 32
     },
-    "project_dir": "RESNET50",
+    "project_dir": "INCEPTIONV3",
     "log_dir": "Logs",
     "project_tracker": [],
     "mixed_precision": "no",

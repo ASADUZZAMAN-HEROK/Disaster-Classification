@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchvision import models
+from torchvision import models, transforms
 
 from configs import Config
 
@@ -36,14 +36,24 @@ def build_vgg16(cfg: Config):
     
     vgg16.classifier[6] = nn.Linear(4096, cfg.model.num_classes)
     for param in vgg16.features.parameters():
-        param.requires_grad = False
+        param.requires_grad = not cfg.model.pretrained
     for i in range(6):
         vgg16.classifier[i].requires_grad = True
 
     if cfg.model.weight_path:
         vgg16.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
     
-    return vgg16
+    vgg16_transforms = transforms.Compose([
+        transforms.Resize((256,256)),               # Resize the smaller edge to 256
+        transforms.CenterCrop(224),            # Crop the center to 224x224
+        transforms.ToTensor(),                 # Convert image to Tensor
+        transforms.Normalize(                  # Normalize the image
+            mean=[0.485, 0.456, 0.406], 
+            std=[0.229, 0.224, 0.225]
+        )
+    ])
+    
+    return vgg16, vgg16_transforms, None
 
 def build_resnet50(cfg: Config):
     resnet50 = models.resnet50()
@@ -55,13 +65,24 @@ def build_resnet50(cfg: Config):
     
     resnet50.fc = nn.Linear(2048, cfg.model.num_classes)
     for param in resnet50.parameters():
-        param.requires_grad = False
+        param.requires_grad = not cfg.model.pretrained
     for param in resnet50.fc.parameters():
         param.requires_grad = True
     
     if cfg.model.weight_path:
         resnet50.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
-    return resnet50
+
+    resnet50_transforms = transforms.Compose([
+        transforms.Resize((256,256)),               
+        transforms.CenterCrop(224),            
+        transforms.ToTensor(),                 
+        transforms.Normalize(                  
+            mean=[0.485, 0.456, 0.406], 
+            std=[0.229, 0.224, 0.225]
+        )
+    ])
+
+    return resnet50, resnet50_transforms, None
 
 
 def build_inceptionV3(cfg: Config):
@@ -73,13 +94,23 @@ def build_inceptionV3(cfg: Config):
     
     inceptionV3.fc = nn.Linear(inceptionV3.fc.in_features, cfg.model.num_classes)
     for param in inceptionV3.parameters():
-        param.requires_grad = False
+        param.requires_grad = not cfg.model.pretrained
     for param in inceptionV3.fc.parameters():
         param.requires_grad = True
     
     if cfg.model.weight_path:
         inceptionV3.load_state_dict(torch.load(cfg.model.weight_path,weights_only=True))
-    return inceptionV3
+
+    inceptionv3_transforms = transforms.Compose([
+        transforms.Resize((299,299)),                
+        transforms.ToTensor(),                 
+        transforms.Normalize(                  
+            mean=[0.485, 0.456, 0.406], 
+            std=[0.229, 0.224, 0.225]
+        )
+    ])
+    inceptionV3.aux_logits = False
+    return inceptionV3, inceptionv3_transforms, None
 
 
 

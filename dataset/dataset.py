@@ -6,29 +6,27 @@ from torchvision.transforms import transforms
 from configs import Config
 from dataset.CDD_util import get_all_files, stratified_split
 from PIL import Image
+from collections import Counter
 import os
 
 
 class CDDDAtaset(Dataset):
     """Please define your own `Dataset` here. We provide an example for CIFAR-10 dataset."""
-    def __init__(self, cfg: Config, is_train: bool = True):
+    def __init__(self, cfg: Config, is_train: bool = True, input_transform: transforms = None, output_transform: transforms = None):
         super().__init__()
+        self.input_transform = input_transform
+        self.target_transform = output_transform
         self.data_dir = os.path.join(cfg.data.root, cfg.data.train_dir if is_train else cfg.data.test_dir)
         print(self.data_dir)
         self.all_files = get_all_files(os.path.join(self.data_dir))  
-        self.input_transform = transforms.Compose([
-            transforms.Resize(256),                      # Resize image to 256px
-            transforms.CenterCrop(224),                   # Crop the image to 224x224
-            transforms.ToTensor(),                        # Convert image to PyTorch tensor
-            transforms.Normalize(                         # Normalize using ImageNet mean and std
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]
-            )
-        ])
+        
         unique_labels = sorted(set(map(lambda x: x.split("/")[-2], self.all_files)))
         self.label_to_idx = {label: idx for idx, label in enumerate(unique_labels)}
         self.idx_to_label = {idx: label for label, idx in self.label_to_idx.items()}
-        self.target_transform = lambda x: self.label_to_idx[x]
+        if self.target_transform is None:
+            self.target_transform = lambda x: self.label_to_idx[x]
+        self.class_frequency = Counter(self.get_labels())
+        print(self.class_frequency)
     
     def __len__(self):
         return len(self.all_files)
@@ -45,15 +43,15 @@ class CDDDAtaset(Dataset):
         label = self.target_transform(label)
         return image, label
     def get_labels(self):
-        return list(map(lambda x: x.split("/")[-2], self.all_files))
+        return sorted(list(map(lambda x: x.split("/")[-2], self.all_files)))
     
     def get_all_files(self):
         return self.all_files
 
 
 
-def get_train_loader(cfg: Config) -> Tuple[DataLoader, DataLoader]:
-    fullDataset = CDDDAtaset(cfg, is_train=True)
+def get_train_loader(cfg: Config, input_transform: transforms, output_transform: transforms) -> Tuple[DataLoader, DataLoader]:
+    fullDataset = CDDDAtaset(cfg, is_train=True, input_transform=input_transform, output_transform=output_transform)
     all_labels = fullDataset.get_labels()
     train_dataset, val_dataset, _, _ = stratified_split(fullDataset, all_labels, cfg.data.train_val_split, cfg.seed)
     del fullDataset

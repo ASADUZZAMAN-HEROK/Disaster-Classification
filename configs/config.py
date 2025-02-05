@@ -57,6 +57,7 @@ class DataConfig(JSONPyWizard):
 
 @dataclasses.dataclass
 class Config(JSONPyWizard):
+    config: str
     # Config for training option
     training: TrainingConfig
 
@@ -74,6 +75,6 @@ class Config(JSONPyWizard):
     project_tracker: List[str] = None
     mixed_precision: str = "no"
     seed: int = 0
-    config: Optional[str] = "configuration/Disaster/vgg16.json"
+    
     def __str__(self):
         return str_config(self)

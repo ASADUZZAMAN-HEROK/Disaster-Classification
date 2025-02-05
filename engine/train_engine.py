@@ -16,12 +16,8 @@ class Engine(BaseEngine):
     def __init__(self, accelerator: accelerate.Accelerator, cfg: Config):
         super().__init__(accelerator, cfg)
 
-        # Dataloaders
-        with self.accelerator.main_process_first():
-            train_loader, val_loader = get_train_loader(cfg)
-        
         # Setup model, loss, optimizer, 
-        model = build_model(cfg)
+        model, input_transform, target_transform = build_model(cfg)
         self.loss_fn = build_loss(cfg)
 
         optimizer = torch.optim.AdamW(
@@ -30,6 +26,10 @@ class Engine(BaseEngine):
             weight_decay=self.cfg.training.weight_decay,
         )
 
+        
+        # Dataloaders
+        with self.accelerator.main_process_first():
+            train_loader, val_loader = get_train_loader(cfg, input_transform, target_transform)
         
 
         # Prepare model, optimizer, loss_fn, and dataloaders for distributed training (or single GPU)
@@ -94,6 +94,7 @@ class Engine(BaseEngine):
         epoch_progress = self.sub_task_progress.add_task("loader", total=len(self.train_loader))
         self.model.train()
         step_loss = 0
+        total_acc = 0
         start = time.time()
         for loader_idx, (img, label) in enumerate(self.train_loader, 1):
             current_step = (self.current_epoch - 1) * len(self.train_loader) + loader_idx
@@ -107,6 +108,11 @@ class Engine(BaseEngine):
 
                 loss = self.accelerator.gather(loss.detach().cpu().clone()).mean()
                 step_loss += loss.item() / self.cfg.training.accum_iter
+
+                batch_pred, batch_label = self.accelerator.gather_for_metrics((output, label))
+                correct = (batch_pred.argmax(1) == batch_label).sum().item()
+                total_acc += correct /len(label)
+
             self.iter_time.update(time.time() - start)
 
             if self.accelerator.is_main_process and self.accelerator.sync_gradients:
@@ -127,7 +133,10 @@ class Engine(BaseEngine):
             )
             self.sub_task_progress.update(epoch_progress, advance=1)
 
+
             start = time.time()
+        total_acc/= len(self.train_loader)
+        self.accelerator.print(f"train. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
         self.sub_task_progress.remove_task(epoch_progress)
 
     def validate(self):
@@ -152,6 +161,7 @@ class Engine(BaseEngine):
         if self.accelerator.is_main_process and total_acc > self.max_acc:
             save_path = os.path.join(self.base_dir, "checkpoint")
             self.accelerator.print(f"new best found with: {total_acc:.3f}, save to {save_path}")
+            self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_val_best.pth"))
             self.max_acc = total_acc
             self.save_checkpoint(
                 os.path.join(
@@ -188,7 +198,7 @@ class Engine(BaseEngine):
         self.epoch_progress.stop_task(train_progress)
 
         self.accelerator.wait_for_everyone()
-        self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_final.pth"))
+        self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_after_train.pth"))
     
 
     def reset(self):
