@@ -72,7 +72,7 @@ class Config(JSONPyWizard):
 
     project_dir: str = "project"
     log_dir: str = "logs"
-    project_tracker: List[str] = None
+    project_tracker: List[str] = dataclasses.field(default_factory=lambda: [])
     mixed_precision: str = "no"
     seed: int = 0
     

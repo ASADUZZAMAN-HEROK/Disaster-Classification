@@ -16,7 +16,9 @@ def main():
             json_cfg.model.resume_path = cfg.model.resume_path
         if cfg.model.weight_path is not None:
             json_cfg.model.weight_path = cfg.model.weight_path
+        
         json_cfg.model.pretrained = cfg.model.pretrained
+        json_cfg.training.epochs = cfg.training.epochs
         cfg = json_cfg 
 
     project_config = accelerate.utils.ProjectConfiguration(

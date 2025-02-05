@@ -17,7 +17,7 @@ class CDDDAtaset(Dataset):
         self.input_transform = input_transform
         self.target_transform = output_transform
         self.data_dir = os.path.join(cfg.data.root, cfg.data.train_dir if is_train else cfg.data.test_dir)
-        print(self.data_dir)
+        # print(self.data_dir)
         self.all_files = get_all_files(os.path.join(self.data_dir))  
         
         unique_labels = sorted(set(map(lambda x: x.split("/")[-2], self.all_files)))
@@ -26,7 +26,7 @@ class CDDDAtaset(Dataset):
         if self.target_transform is None:
             self.target_transform = lambda x: self.label_to_idx[x]
         self.class_frequency = Counter(self.get_labels())
-        print(self.class_frequency)
+        # print(self.class_frequency)
     
     def __len__(self):
         return len(self.all_files)

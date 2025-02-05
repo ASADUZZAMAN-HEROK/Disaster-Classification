@@ -12,9 +12,9 @@
         "weight_decay": 0.0001
     },
     "model": {
-        "name": "resnet50",
+        "name": "mnasnet1_0",
         "in_channels": 3,
-        "base_dim": 64,
+        "base_dim": 16,
         "num_classes": 12,
         "resume_path": null,
         "pretrained": false,
@@ -30,10 +30,10 @@
         "num_workers": 4,
         "batch_size": 32
     },
-    "project_dir": "ResNet50",
+    "project_dir": "MNASNet1_0",
     "log_dir": "Logs",
     "project_tracker": [],
     "mixed_precision": "no",
     "seed": 0,
-    "config": "configuration/Disaster/resnet50.json"
+    "config": "configuration/Disaster/mnasnet1_0.json"
 }

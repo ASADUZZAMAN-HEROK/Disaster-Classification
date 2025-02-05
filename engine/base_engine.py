@@ -89,7 +89,7 @@ class BaseEngine:
         )
 
     def print_model_details(self):
-        print(self.model)
+       # print(self.model)
         trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         non_trainable_params = sum(
             p.numel() for p in self.model.parameters() if not p.requires_grad
