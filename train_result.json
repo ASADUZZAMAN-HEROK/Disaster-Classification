@@ -4,7 +4,11 @@
         "val_accuracy": "0.9068"
     },
     "densenet121": {
-        "train_accuracy": "0.9412",
-        "val_accuracy": "0.9301"
+        "train_accuracy": "0.9397",
+        "val_accuracy": "0.9295"
+    },
+    "efficientnet_b0": {
+        "train_accuracy": "0.8894",
+        "val_accuracy": "0.9034"
     }
 }

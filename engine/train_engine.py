@@ -171,7 +171,7 @@ class Engine(BaseEngine):
                 ),
             )
         self.sub_task_progress.remove_task(valid_progress)
-        return total_acc
+        return self.max_acc
 
     def setup_training(self):
         os.makedirs(os.path.join(self.base_dir, "checkpoint"), exist_ok=True)
@@ -210,7 +210,8 @@ class Engine(BaseEngine):
             if epoch % self.cfg.training.val_freq == 0:
                 self.accelerator.wait_for_everyone()
                 val_accuracy = self.validate()
-                self.save_model_accuracy(self.cfg.model.name, train_accuracy, val_accuracy)
+                if self.max_acc == val_accuracy:
+                    self.save_model_accuracy(self.cfg.model.name, train_accuracy, val_accuracy)
             self.epoch_progress.update(train_progress, advance=1, acc=self.max_acc)
         self.epoch_progress.stop_task(train_progress)
 
