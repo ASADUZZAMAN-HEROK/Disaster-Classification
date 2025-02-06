@@ -16,14 +16,12 @@ class TestEngine(BaseEngine):
     def __init__(self, accelerator: accelerate.Accelerator, cfg: Config):
         super().__init__(accelerator, cfg)
 
-        # Dataloaders
-        with self.accelerator.main_process_first():
-            test_loader = get_test_loader(cfg)
-        
-        # Setup model, loss
-        model = build_model(cfg)
+        model, input_transform, target_transform = build_model(cfg)
         self.loss_fn = build_loss(cfg)
 
+        # Dataloaders
+        with self.accelerator.main_process_first():
+            test_loader = get_test_loader(cfg, input_transform, target_transform)
         
 
         # Prepare model, optimizer, loss_fn, and dataloaders for distributed training (or single GPU)
@@ -56,6 +54,7 @@ class TestEngine(BaseEngine):
         total_acc /= len(self.test_loader)
         if self.accelerator.is_main_process:
             self.accelerator.print(f"Average Test acc: {total_acc:.3f}")
+            self.save_model_accuracy(self.cfg.model.name, total_acc)
         self.sub_task_progress.stop_task(test_progress)
         self.accelerator.wait_for_everyone()
 
@@ -63,6 +62,19 @@ class TestEngine(BaseEngine):
         self.accelerator.init_trackers(
             self.accelerator.project_configuration.project_dir, config=self.cfg.to_dict()["evaluation"]
         )
+    
+    def save_model_accuracy(self, model_name, accuracy):
+        file_path = "test_result.json"
+        if os.path.exists(file_path):
+            with open(file_path, 'r+') as file:
+                data = json.load(file)
+                data.update({model_name:round(accuracy, 4)})
+                file.seek(0)
+                file.truncate()
+                json.dump(data, file, indent=4)
+        else:
+            with open(file_path, 'w') as file:
+                json.dump({model_name:round(accuracy, 4)}, file, indent=4)
     
 
     def reset(self):

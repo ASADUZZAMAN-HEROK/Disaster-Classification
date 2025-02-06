@@ -71,8 +71,8 @@ def get_train_loader(cfg: Config, input_transform: transforms, output_transform:
     
     return train_loader, val_loader,
 
-def get_test_loader(cfg: Config)->DataLoader:
-    test_dataset = CDDDAtaset(cfg, is_train=False)
+def get_test_loader(cfg: Config, input_transform: transforms, output_transform: transforms)->DataLoader:
+    test_dataset = CDDDAtaset(cfg, is_train=False, input_transform=input_transform, output_transform=output_transform)
     test_loader = DataLoader(
         test_dataset,
         num_workers=cfg.evaluation.num_workers,

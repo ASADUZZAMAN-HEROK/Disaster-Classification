@@ -39,4 +39,5 @@ def main():
 
 
 if __name__ == "__main__":
+    # exit(0) #Accidental retrain
     main()

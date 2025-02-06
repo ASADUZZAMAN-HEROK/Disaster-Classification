@@ -138,6 +138,7 @@ class Engine(BaseEngine):
         total_acc/= len(self.train_loader)
         self.accelerator.print(f"train. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
         self.sub_task_progress.remove_task(epoch_progress)
+        return total_acc
 
     def validate(self):
         valid_progress = self.sub_task_progress.add_task("validate", total=len(self.val_loader))
@@ -170,12 +171,27 @@ class Engine(BaseEngine):
                 ),
             )
         self.sub_task_progress.remove_task(valid_progress)
+        return total_acc
 
     def setup_training(self):
         os.makedirs(os.path.join(self.base_dir, "checkpoint"), exist_ok=True)
         self.accelerator.init_trackers(
             self.accelerator.project_configuration.project_dir, config=self.cfg.to_dict()["training"]
         )
+
+
+    def save_model_accuracy(self, model_name, train_accuracy, val_accuracy):
+        file_path = "train_result.json"
+        if os.path.exists(file_path):
+            with open(file_path, 'r+') as file:
+                data = json.load(file)
+                data.update({model_name:{"train_accuracy": f'{train_accuracy:0.4f}', "val_accuracy":f'{val_accuracy:0.4f}'}})
+                file.seek(0)
+                file.truncate()
+                json.dump(data, file, indent=4)
+        else:
+            with open(file_path, 'w') as file:
+                json.dump({model_name:{"train_accuracy": f'{train_accuracy:0.4f}', "val_accuracy":f'{val_accuracy:0.4f}'}}, file, indent=4)
 
     def train(self):
         train_progress = self.epoch_progress.add_task(
@@ -190,10 +206,11 @@ class Engine(BaseEngine):
         self.accelerator.wait_for_everyone()
         for epoch in range(self.current_epoch, self.cfg.training.epochs + 1):
             self.current_epoch = epoch
-            self._train_one_epoch()
+            train_accuracy = self._train_one_epoch()
             if epoch % self.cfg.training.val_freq == 0:
                 self.accelerator.wait_for_everyone()
-                self.validate()
+                val_accuracy = self.validate()
+                self.save_model_accuracy(self.cfg.model.name, train_accuracy, val_accuracy)
             self.epoch_progress.update(train_progress, advance=1, acc=self.max_acc)
         self.epoch_progress.stop_task(train_progress)
 

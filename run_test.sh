@@ -11,10 +11,14 @@ log_file="model_run_status.log"
 
 # Loop through each JSON file in the specified folder
 for model_config in "$config_folder"/*.json; do
+
+    project_dir=$(grep -oP '"project_dir":\s*"\K[^"]+' $model_config)
+    model_name=$(grep -oP '"name":\s*"\K[^"]+' $model_config)
     echo "Running main.py with configuration $model_config..."
     
-    # Run the command for each model and log the output to the log file
-    python main.py --config "$model_config" --model.pretrained --training.epochs 25
+    # echo $model_name, $project_dir, path = Logs/$project_dir/$model_name"_val_best.pth"
+    # # Run the command for each model and log the output to the log file
+    python inference.py --config "$model_config" --model.weight_path Logs/$project_dir/$model_name"_val_best.pth"
 
     # Check if the command ran successfully and log the result
     if [ $? -eq 0 ]; then
