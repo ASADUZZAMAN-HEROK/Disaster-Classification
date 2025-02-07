@@ -10,7 +10,7 @@ from configs.config_utils import str_config
 
 @dataclasses.dataclass
 class TrainingConfig(JSONPyWizard):
-    engine: str = "engine"
+    engine: str 
     label_smoothing: float = 0.0
     batch_size: int = 32
     val_freq: int = 1
@@ -20,6 +20,7 @@ class TrainingConfig(JSONPyWizard):
     mixed_precision: Literal["no", "fp16", "bf16"] = "no"
     lr: float = 0.0003
     weight_decay: float = 0.0001
+    num_fold: int = 10
     def __str__(self):
         return str_config(self)
 

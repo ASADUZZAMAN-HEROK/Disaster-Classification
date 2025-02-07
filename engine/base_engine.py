@@ -65,7 +65,16 @@ class BaseEngine:
             transient=True,
             disable=not self.accelerator.is_main_process,
         )
-        self.live_process = Live(Group(self.epoch_progress, self.sub_task_progress))
+
+        self.fold_progress = Progress(
+            *self.sub_task_progress.columns,
+            TextColumn("| [bold blue]best Fold acc: {task.fields[acc]:.3f}"),
+            transient=True,
+            disable=not self.accelerator.is_main_process,
+
+        )
+
+        self.live_process = Live(Group(self.fold_progress, self.epoch_progress, self.sub_task_progress))
         self.live_process.start(refresh=self.live_process._renderable is not None)
 
         # Monitor for the time

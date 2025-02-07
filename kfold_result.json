@@ -1,0 +1,37 @@
+{
+    "vit_b_16/fold_1": {
+        "train_accuracy": "0.9783",
+        "val_accuracy": "0.9447",
+        "test_accuracy": "0.9523"
+    },
+    "vit_b_16/fold_2": {
+        "train_accuracy": "0.9795",
+        "val_accuracy": "0.9508",
+        "test_accuracy": "0.9426"
+    },
+    "vit_b_16/fold_3": {
+        "train_accuracy": "0.9718",
+        "val_accuracy": "0.9456",
+        "test_accuracy": "0.9329"
+    },
+    "vit_b_16/fold_4": {
+        "train_accuracy": "0.9599",
+        "val_accuracy": "0.9475",
+        "test_accuracy": "0.9353"
+    },
+    "vit_b_16/fold_5": {
+        "train_accuracy": "0.9773",
+        "val_accuracy": "0.9408",
+        "test_accuracy": "0.9416"
+    },
+    "vit_b_16/fold_6": {
+        "train_accuracy": "0.9746",
+        "val_accuracy": "0.9467",
+        "test_accuracy": "0.9399"
+    },
+    "vit_b_16/fold_7": {
+        "train_accuracy": "0.9736",
+        "val_accuracy": "0.9472",
+        "test_accuracy": "0.9398"
+    }
+}

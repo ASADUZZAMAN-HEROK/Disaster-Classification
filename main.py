@@ -19,6 +19,7 @@ def main():
         
         json_cfg.model.pretrained = cfg.model.pretrained
         json_cfg.training.epochs = cfg.training.epochs
+        json_cfg.training.engine = cfg.training.engine
         cfg = json_cfg 
 
     project_config = accelerate.utils.ProjectConfiguration(
@@ -34,10 +35,10 @@ def main():
 
     accelerate.utils.set_seed(cfg.seed, device_specific=True)
     engine = build_engine(cfg.training.engine)(accelerator, cfg)
-    engine.train()
+    engine.kFold_train()
     engine.close()
 
 
 if __name__ == "__main__":
-    # exit(0) #Accidental retrain
+    # exit(0) #Accidental retrain python main.py --config configuration/Disaster/vit_b_16.json --training.engine kfold_train_engine --training.epochs 25
     main()
