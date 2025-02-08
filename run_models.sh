@@ -14,7 +14,7 @@ for model_config in "$config_folder"/*.json; do
     echo "Running main.py with configuration $model_config..."
     
     # Run the command for each model and log the output to the log file
-    python main.py --config "$model_config" --model.pretrained --training.epochs 25
+    python main.py --config "$model_config" --model.pretrained --training.epochs 25 --training.num_workers 8
 
     # Check if the command ran successfully and log the result
     if [ $? -eq 0 ]; then

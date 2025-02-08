@@ -1,14 +1,50 @@
 {
     "alexnet": {
         "train_accuracy": "0.9783",
-        "val_accuracy": "0.9068"
+        "val_accuracy": "0.9239"
     },
     "densenet121": {
         "train_accuracy": "0.9397",
-        "val_accuracy": "0.9295"
+        "val_accuracy": "0.9364"
     },
     "efficientnet_b0": {
-        "train_accuracy": "0.8894",
-        "val_accuracy": "0.9034"
+        "train_accuracy": "0.9227",
+        "val_accuracy": "0.9267"
+    },
+    "inceptionV3": {
+        "train_accuracy": "0.9105",
+        "val_accuracy": "0.9256"
+    },
+    "mnasnet1_0": {
+        "train_accuracy": "0.9414",
+        "val_accuracy": "0.9244"
+    },
+    "mobilenet_v2": {
+        "train_accuracy": "0.9379",
+        "val_accuracy": "0.9398"
+    },
+    "regnet_y_400mf": {
+        "train_accuracy": "0.9363",
+        "val_accuracy": "0.9278"
+    },
+    "resnet50": {
+        "train_accuracy": "0.9415",
+        "val_accuracy": "0.9437"
+    },
+    "shufflenet_v2_x1_0": {
+        "train_accuracy": "0.8341",
+        "val_accuracy": "0.8386"
+    },
+    "squeezenet1_0": {
+        "train_accuracy": "0.8908",
+        "val_accuracy": "0.9392"
+    },
+    "vgg16": {
+        "train_accuracy": "0.9943",
+        "val_accuracy": "0.9358"
+    },
+    "vit_b_16": {
+        "train_accuracy": "0.9792",
+        "val_accuracy": "0.9500"
     }
 }

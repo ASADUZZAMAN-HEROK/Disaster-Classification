@@ -19,6 +19,7 @@ def main():
         
         json_cfg.model.pretrained = cfg.model.pretrained
         json_cfg.training.epochs = cfg.training.epochs
+        json_cfg.training.num_workers = cfg.training.num_workers
         cfg = json_cfg 
 
     project_config = accelerate.utils.ProjectConfiguration(

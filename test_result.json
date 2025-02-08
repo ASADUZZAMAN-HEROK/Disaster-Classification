@@ -8,7 +8,7 @@
     "regnet_y_400mf": 0.9186,
     "resnet50": 0.9258,
     "shufflenet_v2_x1_0": 0.8245,
-    "squeezenet1_0": 0.9308,
+    "squeezenet1_0": 0.9254,
     "vgg16": 0.9254,
     "vit_b_16": 0.938
 }
