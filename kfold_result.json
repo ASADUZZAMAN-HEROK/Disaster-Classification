@@ -33,5 +33,20 @@
         "train_accuracy": "0.9736",
         "val_accuracy": "0.9472",
         "test_accuracy": "0.9398"
+    },
+    "vit_b_16/fold_8": {
+        "train_accuracy": "0.9748",
+        "val_accuracy": "0.9371",
+        "test_accuracy": "0.9398"
+    },
+    "vit_b_16/fold_9": {
+        "train_accuracy": "0.9792",
+        "val_accuracy": "0.9470",
+        "test_accuracy": "0.9477"
+    },
+    "vit_b_16/fold_10": {
+        "train_accuracy": "0.9652",
+        "val_accuracy": "0.9418",
+        "test_accuracy": "0.9427"
     }
 }
