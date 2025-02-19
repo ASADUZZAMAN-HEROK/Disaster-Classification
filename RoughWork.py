@@ -22,9 +22,13 @@ if cfg.config is not None:
     cfg = json_cfg 
 
 fullDataset = CDDDAtaset(cfg)
-dataloader = torch.utils.data.DataLoader(fullDataset, batch_size=1, shuffle=False, num_workers=1)
+# dataloader = torch.utils.data.DataLoader(fullDataset, batch_size=1, shuffle=False, num_workers=1)
 
 all_labels = fullDataset.get_labels()
+print(fullDataset.__len__())
+
+for a, b in zip(fullDataset.class_frequency.items(), fullDataset.augmented_class_frequency.items()):
+    print(a, b)
 
 
 def stratified_split(dataset : torch.utils.data.Dataset, labels, fraction, random_state=None):
