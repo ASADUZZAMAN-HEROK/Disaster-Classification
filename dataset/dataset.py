@@ -127,7 +127,7 @@ class CDDDAtaset(Dataset):
 
 def get_train_loader(cfg: Config, input_transform: transforms, output_transform: transforms) -> Tuple[DataLoader, DataLoader]:
     fullDataset = CDDDAtaset(cfg, is_train=True, input_transform=input_transform, output_transform=output_transform)
-    all_labels = fullDataset.get_labels()
+    all_labels = fullDataset.get_augmented_labels()
     train_dataset, val_dataset, _, _ = stratified_split(fullDataset, all_labels, cfg.data.train_val_split, cfg.seed)
     del fullDataset
     
