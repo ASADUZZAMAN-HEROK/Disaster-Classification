@@ -7,20 +7,10 @@ import os
 
 import accelerate
 import torch
-from rich.console import Group
-from rich.live import Live
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
 
 from configs import Config
 from utils.meter import AverageMeter
+from utils.progress_bar import ProgressBars, tqdm_print
 
 
 def human_format(num):
@@ -41,32 +31,16 @@ class BaseEngine:
 
         if self.accelerator.is_main_process and is_training_engine:
             os.makedirs(self.base_dir, exist_ok=True)
-            print(cfg)
+            tqdm_print(cfg.__str__())
         self.accelerator.wait_for_everyone()
 
         self.cfg = cfg
         self.device = self.accelerator.device
-        print(f'Using device: {self.device}')
+        tqdm_print(f'Using device: {self.device}')
         self.dtype = self.get_dtype()
 
-        self.sub_task_progress = Progress(
-            TextColumn("{task.description}"),
-            MofNCompleteColumn(),
-            BarColumn(),
-            TaskProgressColumn(),
-            TimeRemainingColumn(),
-            TimeElapsedColumn(),
-            transient=True,
-            disable=not self.accelerator.is_main_process,
-        )
-        self.epoch_progress = Progress(
-            *self.sub_task_progress.columns,
-            TextColumn("| [bold blue]best acc: {task.fields[acc]:.3f}"),
-            transient=True,
-            disable=not self.accelerator.is_main_process,
-        )
-        self.live_process = Live(Group(self.epoch_progress, self.sub_task_progress))
-        self.live_process.start(refresh=self.live_process._renderable is not None)
+        self.sub_task_progress = ProgressBars(leave=False, position=1)
+        self.epoch_progress = ProgressBars(leave=True, position=0)
 
         # Monitor for the time
         self.iter_time = AverageMeter()
@@ -81,41 +55,37 @@ class BaseEngine:
             return torch.bfloat16
 
     def print_dataset_details(self):
-        self.accelerator.print(
-            "📁 \033[1mLength of dataset\033[0m:\n"
+        tqdm_print(
+            "📁 Length of dataset\n"
             f" - 💪 Train: {len(self.train_loader.dataset)}\n"
             f" - 📝 Validation: {len(self.val_loader.dataset)}\n"
         
         )
 
     def print_model_details(self):
-       # print(self.model)
         trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
         non_trainable_params = sum(
             p.numel() for p in self.model.parameters() if not p.requires_grad
         )
         total_params = trainable_params + non_trainable_params
-        self.accelerator.print(
-            "🤖 \033[1mModel Parameters:\033[0m\n"
-            f" - 🔥 Trainable: {trainable_params}\n"
-            f" - 🧊 Non-trainable: {non_trainable_params}\n"
-            f" - 🤯 Total: {total_params}"
+        model_stats = f"🤖 Model Parameters:\n - 🔥 Trainable: {trainable_params}\n - 🧊 Non-trainable: {non_trainable_params}\n - 🧊 Total: {total_params}\n"
+        tqdm_print(
+           model_stats
         )
 
     def print_training_details(self):
         try:
             self.print_dataset_details()
         except Exception as e:
-            print("Error in printing dataset details:"+e)
+            tqdm_print("Error in printing dataset details:"+e)
         try:
             self.print_model_details()
         except Exception as e:
-            print("Error in printing model details"+e)
+            tqdm_print("Error in printing model details"+e)
 
     def reset(self):
         self.data_time.reset()
         self.iter_time.reset()
 
     def close(self):
-        self.live_process.stop()
         self.accelerator.end_training()

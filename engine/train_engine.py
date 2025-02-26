@@ -9,7 +9,7 @@ from configs import Config
 from dataset import get_train_loader
 from engine.base_engine import BaseEngine
 from modeling import build_loss, build_model
-from tqdm import tqdm
+from utils.progress_bar import tqdm_print
 
 
 class Engine(BaseEngine):
@@ -56,12 +56,12 @@ class Engine(BaseEngine):
         """
         checkpoint = self.cfg.model.resume_path
         if not os.path.exists(checkpoint):
-            self.accelerator.print(f"[WARN] Checkpoint {checkpoint} not found. Skipping...")
+            tqdm_print(f"[WARN] Checkpoint {checkpoint} not found. Skipping...")
             return
         self.accelerator.load_state(checkpoint)
 
         if not os.path.exists(os.path.join(checkpoint, "meta_data.json")):
-            self.accelerator.print(
+            tqdm_print(
                 f"[WARN] meta data for resuming training is not found in {checkpoint}. Skipping..."
             )
             return
@@ -70,7 +70,7 @@ class Engine(BaseEngine):
             meta_data = json.load(f)
         self.current_epoch = meta_data.get("epoch", 0) + 1
         self.max_acc = meta_data.get("max_acc", 0)
-        self.accelerator.print(
+        tqdm_print(
             f"[WARN] Checkpoint loaded from {self.cfg.model.resume_path}, continue training or validate..."
         )
         del checkpoint
@@ -136,7 +136,7 @@ class Engine(BaseEngine):
 
             start = time.time()
         total_acc/= len(self.train_loader)
-        self.accelerator.print(f"train. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
+        tqdm_print(f"train. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
         self.sub_task_progress.remove_task(epoch_progress)
         return total_acc
 
@@ -152,7 +152,7 @@ class Engine(BaseEngine):
             self.sub_task_progress.update(valid_progress, advance=1)
         total_acc /= len(self.val_loader)
         if self.accelerator.is_main_process:
-            self.accelerator.print(f"val. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
+            tqdm_print(f"val. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
             self.accelerator.log(
                 {
                     "acc/val": total_acc,
@@ -161,7 +161,7 @@ class Engine(BaseEngine):
             )
         if self.accelerator.is_main_process and total_acc > self.max_acc:
             save_path = os.path.join(self.base_dir, "checkpoint")
-            self.accelerator.print(f"new best found with: {total_acc:.3f}, save to {save_path}")
+            tqdm_print(f"new best found with: {total_acc:.3f}, save to {save_path}")
             self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_val_best.pth"))
             self.max_acc = total_acc
             self.save_checkpoint(

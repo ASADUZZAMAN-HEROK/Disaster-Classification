@@ -9,7 +9,7 @@ from configs import Config
 from dataset import get_test_loader
 from engine.base_engine import BaseEngine
 from modeling import build_loss, build_model
-from tqdm import tqdm
+from utils.progress_bar import tqdm_print
 
 
 class TestEngine(BaseEngine):
@@ -31,7 +31,7 @@ class TestEngine(BaseEngine):
         ) = self.accelerator.prepare(model,test_loader)
         self.min_loss = float("inf")
         
-        self.accelerator.print(
+        tqdm_print(
             "📁 \033[1mLength of dataset\033[0m:\n"
             f" - 📝 Test: {len(self.test_loader.dataset)}\n"
         )
@@ -39,12 +39,12 @@ class TestEngine(BaseEngine):
     def batch_test(self):
         if self.accelerator.is_main_process:
             self.setup_test()
-        print("Start testing")
+        tqdm_print("Start testing")
         test_progress = self.sub_task_progress.add_task("test", total=len(self.test_loader))
         total_acc = 0
 
         self.model.eval()
-        self.accelerator.print("Model is in evaluation mode")
+        tqdm_print("Model is in evaluation mode")
         for img, label in self.test_loader  :
             pred = self.model(img)
             batch_pred, batch_label = self.accelerator.gather_for_metrics((pred, label))
@@ -53,7 +53,7 @@ class TestEngine(BaseEngine):
             self.sub_task_progress.update(test_progress, advance=1)
         total_acc /= len(self.test_loader)
         if self.accelerator.is_main_process:
-            self.accelerator.print(f"Average Test acc: {total_acc:.3f}")
+            tqdm_print(f"Average Test acc: {total_acc:.3f}")
             self.save_model_accuracy(self.cfg.model.name, total_acc)
         self.sub_task_progress.stop_task(test_progress)
         self.accelerator.wait_for_everyone()
