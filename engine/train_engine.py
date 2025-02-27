@@ -194,16 +194,16 @@ class Engine(BaseEngine):
                 json.dump({model_name:{"train_accuracy": f'{train_accuracy:0.4f}', "val_accuracy":f'{val_accuracy:0.4f}'}}, file, indent=4)
 
     def train(self):
+        if self.accelerator.is_main_process:
+            self.print_training_details()
+            self.setup_training()
+        self.accelerator.wait_for_everyone()
         train_progress = self.epoch_progress.add_task(
             "Epoch",
             total=self.cfg.training.epochs,
             completed=self.current_epoch - 1,
             acc=self.max_acc,
         )
-        if self.accelerator.is_main_process:
-            self.print_training_details()
-            self.setup_training()
-        self.accelerator.wait_for_everyone()
         for epoch in range(self.current_epoch, self.cfg.training.epochs + 1):
             self.current_epoch = epoch
             train_accuracy = self._train_one_epoch()
