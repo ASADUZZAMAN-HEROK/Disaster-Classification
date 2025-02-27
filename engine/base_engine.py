@@ -7,20 +7,11 @@ import os
 
 import accelerate
 import torch
-from rich.console import Group
-from rich.live import Live
-from rich.progress import (
-    BarColumn,
-    MofNCompleteColumn,
-    Progress,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-    TimeRemainingColumn,
-)
+
 
 from configs import Config
 from utils.meter import AverageMeter
+from utils.progress_bar import ProgressBars
 
 
 def human_format(num):
