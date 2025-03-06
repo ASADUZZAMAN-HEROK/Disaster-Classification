@@ -49,34 +49,7 @@ class BaseEngine:
         print(f'Using device: {self.device}')
         self.dtype = self.get_dtype()
 
-        self.sub_task_progress = Progress(
-            TextColumn("{task.description}"),
-            MofNCompleteColumn(),
-            BarColumn(),
-            TaskProgressColumn(),
-            TimeRemainingColumn(),
-            TimeElapsedColumn(),
-            transient=True,
-            disable=not self.accelerator.is_main_process,
-        )
-        self.epoch_progress = Progress(
-            *self.sub_task_progress.columns,
-            TextColumn("| [bold blue]best acc: {task.fields[acc]:.3f}"),
-            transient=True,
-            disable=not self.accelerator.is_main_process,
-        )
-
-        self.fold_progress = Progress(
-            *self.sub_task_progress.columns,
-            TextColumn("| [bold blue]best Fold acc: {task.fields[acc]:.3f}"),
-            transient=True,
-            disable=not self.accelerator.is_main_process,
-
-        )
-
-        self.live_process = Live(Group(self.fold_progress, self.epoch_progress, self.sub_task_progress))
-        self.live_process.start(refresh=self.live_process._renderable is not None)
-
+        self.progress_bar = ProgressBars()
         # Monitor for the time
         self.iter_time = AverageMeter()
         self.data_time = AverageMeter()
