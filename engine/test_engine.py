@@ -30,6 +30,7 @@ class TestEngine(BaseEngine):
             self.test_loader,
         ) = self.accelerator.prepare(model,test_loader)
         self.min_loss = float("inf")
+        self.main_task = "Main Task"
         
         tqdm_print(
             "📁 \033[1mLength of dataset\033[0m:\n"
@@ -40,7 +41,7 @@ class TestEngine(BaseEngine):
         if self.accelerator.is_main_process:
             self.setup_test()
         tqdm_print("Start testing")
-        test_progress = self.sub_task_progress.add_task("test", total=len(self.test_loader))
+        self.progress_bar.add_task(self.main_task,"Test Loader", total=len(self.test_loader))
         total_acc = 0
 
         self.model.eval()
@@ -50,12 +51,12 @@ class TestEngine(BaseEngine):
             batch_pred, batch_label = self.accelerator.gather_for_metrics((pred, label))
             correct = (batch_pred.argmax(1) == batch_label).sum().item()
             total_acc += correct / len(label)
-            self.sub_task_progress.update(test_progress, advance=1)
+            self.progress_bar.update(self.main_task, advance=1)
         total_acc /= len(self.test_loader)
         if self.accelerator.is_main_process:
             tqdm_print(f"Average Test acc: {total_acc:.3f}")
             self.save_model_accuracy(self.cfg.model.name, total_acc)
-        self.sub_task_progress.stop_task(test_progress)
+        self.progress_bar.stop_task(self.main_task)
         self.accelerator.wait_for_everyone()
 
     def setup_test(self):

@@ -43,6 +43,8 @@ class Engine(BaseEngine):
         self.current_epoch = 1
 
         self.max_acc = 0
+        self.sub_task = "Sub Task"
+        self.main_task = "Main Task"
 
         # Resume or not
         if self.cfg.model.resume_path is not None:
@@ -91,7 +93,7 @@ class Engine(BaseEngine):
         torch.save(unwrapped_model.state_dict(), save_path)
 
     def _train_one_epoch(self):
-        epoch_progress = self.sub_task_progress.add_task("loader", total=len(self.train_loader))
+        self.progress_bar.add_task(self.sub_task, "Loader", total=len(self.train_loader))
         self.model.train()
         step_loss = 0
         total_acc = 0
@@ -131,17 +133,17 @@ class Engine(BaseEngine):
                 },
                 step=current_step,
             )
-            self.sub_task_progress.update(epoch_progress, advance=1)
+            self.progress_bar.update(self.sub_task, advance=1)
 
 
             start = time.time()
         total_acc/= len(self.train_loader)
         tqdm_print(f"train. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
-        self.sub_task_progress.remove_task(epoch_progress)
+        # self.progress_bar.remove_task(self.sub_task)
         return total_acc
 
     def validate(self):
-        valid_progress = self.sub_task_progress.add_task("validate", total=len(self.val_loader))
+        self.progress_bar.add_task(self.sub_task, "Validate", total=len(self.val_loader))
         total_acc = 0
         self.model.eval()
         for img, label in self.val_loader:
@@ -149,7 +151,7 @@ class Engine(BaseEngine):
             batch_pred, batch_label = self.accelerator.gather_for_metrics((pred, label))
             correct = (batch_pred.argmax(1) == batch_label).sum().item()
             total_acc += correct / len(label)
-            self.sub_task_progress.update(valid_progress, advance=1)
+            self.progress_bar.update(self.sub_task, advance=1)
         total_acc /= len(self.val_loader)
         if self.accelerator.is_main_process:
             tqdm_print(f"val. acc. at epoch {self.current_epoch}: {total_acc:.3f}")
@@ -170,7 +172,7 @@ class Engine(BaseEngine):
                     f"epoch_{self.current_epoch}",
                 ),
             )
-        self.sub_task_progress.remove_task(valid_progress)
+        # self.progress_bar.remove_task(self.sub_task)
         return self.max_acc
 
     def setup_training(self):
@@ -198,8 +200,9 @@ class Engine(BaseEngine):
             self.print_training_details()
             self.setup_training()
         self.accelerator.wait_for_everyone()
-        train_progress = self.epoch_progress.add_task(
-            "Epoch",
+        self.progress_bar.add_task(
+            self.main_task,
+            desc="Training Epoch",
             total=self.cfg.training.epochs,
             completed=self.current_epoch - 1,
             acc=self.max_acc,
@@ -212,8 +215,9 @@ class Engine(BaseEngine):
                 val_accuracy = self.validate()
                 if self.max_acc == val_accuracy:
                     self.save_model_accuracy(self.cfg.model.name, train_accuracy, val_accuracy)
-            self.epoch_progress.update(train_progress, advance=1, acc=self.max_acc)
-        self.epoch_progress.stop_task(train_progress)
+            self.progress_bar.update(self.main_task, advance=1, acc=self.max_acc)
+        self.progress_bar.stop_task(self.main_task)
+        self.progress_bar.stop_task(self.sub_task)  
 
         self.accelerator.wait_for_everyone()
         self.save_model(os.path.join(self.base_dir, f"{self.cfg.model.name}_after_train.pth"))

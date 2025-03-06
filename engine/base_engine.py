@@ -39,9 +39,7 @@ class BaseEngine:
         tqdm_print(f'Using device: {self.device}')
         self.dtype = self.get_dtype()
 
-        self.sub_task_progress = ProgressBars(leave=False, position=1)
-        self.epoch_progress = ProgressBars(leave=True, position=0)
-
+        self.progress_bar = ProgressBars()
         # Monitor for the time
         self.iter_time = AverageMeter()
         self.data_time = AverageMeter()
